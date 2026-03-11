@@ -50,7 +50,7 @@ const bowSVG = (
   </svg>
 );
 
-type Screen = "landing" | "hellstrom" | "cards" | "copenhagen";
+type Screen = "landing" | "hellstrom" | "cards" | "song" | "copenhagen";
 
 function GiftBox({ label, index, onClick, opened }: { label: string; index: number; onClick: () => void; opened: boolean }) {
   return (
@@ -123,7 +123,8 @@ export default function Home() {
   const isAnimating = useRef(false);
   const flashRef = useRef<HTMLDivElement>(null);
 
-  const screenMap: Screen[] = ["hellstrom", "cards", "copenhagen"];
+  const screenMap: Screen[] = ["hellstrom", "cards", "song", "copenhagen"];
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const openGift = useCallback((index: number) => {
     if (openedGifts.has(index)) {
@@ -227,12 +228,13 @@ export default function Home() {
         <div className="landing-content">
           <div className="landing-header">
             <div className="landing-name">Grattis på födelsedagen min älskling</div>
-            <div className="landing-sub">Tre spännande presenter väntar på dig</div>
+            <div className="landing-sub">Fyra spännande presenter väntar på dig</div>
           </div>
           <div className="gifts">
             <GiftBox label="I" index={0} onClick={() => openGift(0)} opened={openedGifts.has(0)} />
             <GiftBox label="II" index={1} onClick={() => openGift(1)} opened={openedGifts.has(1)} />
             <GiftBox label="III" index={2} onClick={() => openGift(2)} opened={openedGifts.has(2)} />
+            <GiftBox label="IV" index={3} onClick={() => openGift(3)} opened={openedGifts.has(3)} />
           </div>
         </div>
       </div>
@@ -291,6 +293,30 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ═══ SONG ═══ */}
+      <div className={`screen screen-song${screen === "song" ? " active" : ""}`}>
+        <button className="back-btn" onClick={() => { setScreen("landing"); audioRef.current?.pause(); }}>&larr; Tillbaka</button>
+        <div className="card-stage">
+          <div className="love-card song-card-wrap active">
+            <div className="card-paper">
+              <div className="card-border" />
+              <div className="card-corner tl">{cornerSVG}</div>
+              <div className="card-corner tr">{cornerSVG}</div>
+              <div className="card-corner bl">{cornerSVG}</div>
+              <div className="card-corner br">{cornerSVG}</div>
+              <div className="card-content">
+                <div className="song-icon">🎵</div>
+                <div className="card-number">Present III</div>
+                <div className="card-divider" />
+                <div className="card-text">En låt till dig</div>
+                <div className="song-subtitle">Tryck play</div>
+                <audio ref={audioRef} className="song-player" controls src="/Mia V2.mp3" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ═══ COPENHAGEN ═══ */}
       <div className={`screen screen-copenhagen${screen === "copenhagen" ? " active" : ""}`}>
         <button className="back-btn" onClick={() => setScreen("landing")}>&larr; Tillbaka</button>
@@ -298,7 +324,7 @@ export default function Home() {
           <div className="cph-border" />
           <div className="cph-shimmer" />
           <div className="cph-flag">🇩🇰</div>
-          <div className="cph-label">Present III</div>
+          <div className="cph-label">Present IV</div>
           <div className="cph-divider" />
           <div className="cph-title">Vi åker till Köpenhamn</div>
           <div className="cph-subtitle">Bara du och jag</div>

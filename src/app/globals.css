@@ -563,6 +563,31 @@ body {
 }
 
 /* ═══════════════════════════════════
+   SONG REVEAL
+   ═══════════════════════════════════ */
+.screen-song {
+  background: radial-gradient(ellipse 100% 80% at 50% 50%, rgba(30,15,25,0.8), transparent);
+}
+
+.song-icon { font-size: 32px; margin-bottom: 8px; filter: drop-shadow(0 0 10px rgba(200,103,122,0.4)); }
+
+.song-subtitle {
+  font-family: var(--font-lora), Georgia, serif;
+  font-style: italic; font-size: 12px;
+  color: var(--ink-light); letter-spacing: 0.12em;
+  margin-top: 16px; margin-bottom: 20px; opacity: 0.5;
+}
+
+.song-player {
+  width: 100%;
+  max-width: 280px;
+  height: 36px;
+  border-radius: 20px;
+}
+
+.song-card-wrap { cursor: default; }
+
+/* ═══════════════════════════════════
    COPENHAGEN REVEAL
    ═══════════════════════════════════ */
 .screen-copenhagen {
