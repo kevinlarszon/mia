@@ -381,7 +381,7 @@ export default function Home() {
                 <div className="card-number">Present IV</div>
                 <div className="card-divider" />
                 <div className="card-text">En låt till dig</div>
-                <div className="song-subtitle">Tryck play</div>
+                <div className="song-subtitle">Tryck på play</div>
                 <audio ref={audioRef} className="song-player" controls src="/Mia V2.mp3" />
               </div>
             </div>
