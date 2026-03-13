@@ -22,11 +22,11 @@ const cards = [
   "Älskar att du aldrig skulle såra mig",
   "Älskar att du vill mitt bästa",
   "Älskar att du förstår mig även fast jag inte alltid kan uttrycka mig väl",
-  "Älskar att du har egna åsikter",
+  "Älskar att du vågar säga vad du tycker",
   "Älskar att du är ärlig och rättvis",
   "Älskar att du kan prata om vad som helst",
-  "Älskar att du har egna vänner och intressen",
-  "Älskar att du är stark och alltid uppnår det du bestämmer dig för",
+  "Älskar att du har en energi som smittar av sig på alla runt omkring dig",
+  "Älskar att du är stark och uppnår det du bestämmer dig för",
   "Älskar att du söker tröst hos mig",
   "Älskar att du är genuint glad för andras skull",
   "Älskar att du tar och driver initiativ",
@@ -54,8 +54,8 @@ type Screen = "landing" | "hellstrom" | "cards" | "song" | "copenhagen" | "brunc
 
 const unlockTimes: Date[] = [
   new Date("2026-03-13T18:00:00"),  // I  — today 18:00
-  new Date("2026-03-14T00:00:00"),  // II — midnight
-  new Date("2026-03-27T00:00:00"),  // III
+  new Date("2026-03-13T18:15:00"),  // II — today 18:15
+  new Date("2026-03-13T23:30:00"),  // III — today 23:30
   new Date("2026-03-27T00:00:00"),  // IV
   new Date("2026-03-27T00:00:00"),  // V
 ];
@@ -149,7 +149,7 @@ export default function Home() {
   const isAnimating = useRef(false);
   const flashRef = useRef<HTMLDivElement>(null);
 
-  const screenMap: Screen[] = ["hellstrom", "brunch", "cards", "song", "copenhagen"];
+  const screenMap: Screen[] = ["song", "hellstrom", "brunch", "cards", "copenhagen"];
   const audioRef = useRef<HTMLAudioElement>(null);
   const [now, setNow] = useState(() => new Date());
   const [locksEnabled, setLocksEnabled] = useState(true);
@@ -324,7 +324,7 @@ export default function Home() {
             <div className="ticket-artist">Håkan Hellström</div>
             <div className="ticket-type">Live</div>
             <div className="ticket-note">
-              Detaljer avslöjas snart&hellip;
+              Kl. 20:00
             </div>
           </div>
         </div>
@@ -378,11 +378,11 @@ export default function Home() {
               <div className="card-corner br">{cornerSVG}</div>
               <div className="card-content">
                 <div className="song-icon">🎵</div>
-                <div className="card-number">Present IV</div>
+                <div className="card-number">Present I</div>
                 <div className="card-divider" />
-                <div className="card-text">En låt till dig</div>
+                <div className="card-text">En låt till dig — en ledtråd till nästa present</div>
                 <div className="song-subtitle">Tryck på play</div>
-                <audio ref={audioRef} className="song-player" controls src="/Mia V2.mp3" />
+                <audio ref={audioRef} className="song-player" controls src="/mia/mia v4.mp3" />
               </div>
             </div>
           </div>
@@ -415,7 +415,7 @@ export default function Home() {
               <circle cx="18" cy="18" r="8" fill="rgba(250,246,239,0.9)" />
             </svg>
           </div>
-          <div className="cph-label">Present II</div>
+          <div className="cph-label">Present III</div>
           <div className="cph-divider" />
           <div className="cph-title">Stockholm Brunch Club</div>
           <div className="cph-subtitle">Söndagsbrunch f&ouml;r tv&aring;</div>
