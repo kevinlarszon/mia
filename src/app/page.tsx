@@ -50,11 +50,27 @@ const bowSVG = (
   </svg>
 );
 
-type Screen = "landing" | "hellstrom" | "cards" | "song" | "copenhagen";
+type Screen = "landing" | "hellstrom" | "cards" | "song" | "copenhagen" | "brunch";
 
-function GiftBox({ label, index, onClick, opened }: { label: string; index: number; onClick: () => void; opened: boolean }) {
+const unlockTimes: Date[] = [
+  new Date("2026-03-13T18:00:00"),  // I  — today 18:00
+  new Date("2026-03-14T00:00:00"),  // II — midnight
+  new Date("2026-03-27T00:00:00"),  // III
+  new Date("2026-03-27T00:00:00"),  // IV
+  new Date("2026-03-27T00:00:00"),  // V
+];
+
+function formatUnlockTime(date: Date): string {
+  const day = date.getDate();
+  const month = date.toLocaleDateString("sv-SE", { month: "short" });
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${day} ${month} ${hours}:${minutes}`;
+}
+
+function GiftBox({ label, index, onClick, opened, locked }: { label: string; index: number; onClick: () => void; opened: boolean; locked: boolean }) {
   return (
-    <div id={`gift-${index}`} className={`gift${opened ? " opened" : ""}`} onClick={onClick}>
+    <div id={`gift-${index}`} className={`gift${opened ? " opened" : ""}${locked ? " locked" : ""}`} onClick={onClick}>
       <div className="gift-wrap">
         {bowSVG}
         <div className="gift-lid" />
@@ -63,6 +79,16 @@ function GiftBox({ label, index, onClick, opened }: { label: string; index: numb
         </div>
       </div>
       <div className="gift-label">{label}</div>
+      {locked && (
+        <div className="gift-lock-info">
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="none">
+            <rect x="5" y="11" width="14" height="10" rx="2" fill="rgba(201,168,76,0.6)" stroke="rgba(201,168,76,0.8)" strokeWidth="1" />
+            <path d="M8 11V7a4 4 0 1 1 8 0v4" stroke="rgba(201,168,76,0.8)" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+            <circle cx="12" cy="16" r="1.5" fill="rgba(26,15,12,0.7)" />
+          </svg>
+          <span className="gift-unlock-time">{formatUnlockTime(unlockTimes[index])}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -123,13 +149,24 @@ export default function Home() {
   const isAnimating = useRef(false);
   const flashRef = useRef<HTMLDivElement>(null);
 
-  const screenMap: Screen[] = ["hellstrom", "cards", "song", "copenhagen"];
+  const screenMap: Screen[] = ["hellstrom", "brunch", "cards", "song", "copenhagen"];
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [now, setNow] = useState(() => new Date());
+  const [locksEnabled, setLocksEnabled] = useState(true);
+  const isDev = process.env.NODE_ENV === "development";
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const isLocked = (index: number) => locksEnabled && now < unlockTimes[index];
 
   const openGift = useCallback((index: number) => {
+    if (locksEnabled && now < unlockTimes[index]) return;
     if (openedGifts.has(index)) {
       setScreen(screenMap[index]);
-      if (index === 1) {
+      if (index === 2) {
         setCurrentCard(0);
         setAnimClass("");
         setExitingCard(null);
@@ -140,33 +177,62 @@ export default function Home() {
     const gift = document.getElementById(`gift-${index}`);
     if (!gift) return;
     const rect = gift.getBoundingClientRect();
-    const cx = (rect.left + rect.width / 2) / window.innerWidth * 100;
-    const cy = (rect.top + rect.height / 2) / window.innerHeight * 100;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const cxPct = (cx / window.innerWidth) * 100;
+    const cyPct = (cy / window.innerHeight) * 100;
 
     if (flashRef.current) {
-      flashRef.current.style.setProperty("--flash-x", cx + "%");
-      flashRef.current.style.setProperty("--flash-y", cy + "%");
+      flashRef.current.style.setProperty("--flash-x", cxPct + "%");
+      flashRef.current.style.setProperty("--flash-y", cyPct + "%");
     }
 
     gift.classList.add("opening");
 
+    // Spawn sparkles from the gift
+    const sparkles: HTMLDivElement[] = [];
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement("div");
+      s.className = "sparkle";
+      const angle = (Math.PI * 2 * i) / 12 + (Math.random() - 0.5) * 0.4;
+      const dist = 50 + Math.random() * 70;
+      s.style.left = cx + "px";
+      s.style.top = cy + "px";
+      s.style.setProperty("--dx", Math.cos(angle) * dist + "px");
+      s.style.setProperty("--dy", (Math.sin(angle) * dist - 15) + "px");
+      s.style.animationDelay = 0.3 + Math.random() * 0.15 + "s";
+      s.style.animationDuration = 0.7 + Math.random() * 0.3 + "s";
+      const size = 3 + Math.random() * 4;
+      s.style.width = size + "px";
+      s.style.height = size + "px";
+      document.body.appendChild(s);
+      sparkles.push(s);
+    }
+
+    // Start the flash sweep animation
     setTimeout(() => {
       flashRef.current?.classList.add("active");
     }, 400);
 
+    // Switch screen at peak (flash fully covers view)
     setTimeout(() => {
       setScreen(screenMap[index]);
-      flashRef.current?.classList.remove("active");
-      gift.classList.remove("opening");
       setOpenedGifts((prev) => new Set(prev).add(index));
+      gift.classList.remove("opening");
 
-      if (index === 1) {
+      if (index === 2) {
         setCurrentCard(0);
         setAnimClass("");
         setExitingCard(null);
       }
-    }, 800);
-  }, [openedGifts]);
+    }, 1100);
+
+    // Remove flash after animation completes
+    setTimeout(() => {
+      flashRef.current?.classList.remove("active");
+      sparkles.forEach((s) => s.remove());
+    }, 1800);
+  }, [openedGifts, now, locksEnabled]);
 
   const navigateCard = useCallback((dir: number, targetIndex?: number) => {
     if (isAnimating.current) return;
@@ -225,16 +291,22 @@ export default function Home() {
 
       {/* ═══ LANDING ═══ */}
       <div className={`screen${screen === "landing" ? " active" : ""}`}>
+        {isDev && (
+          <button className="dev-toggle" onClick={() => setLocksEnabled((v) => !v)}>
+            {locksEnabled ? "Unlock all" : "Locks on"}
+          </button>
+        )}
         <div className="landing-content">
           <div className="landing-header">
             <div className="landing-name">Grattis på födelsedagen min älskling</div>
-            <div className="landing-sub">Fyra spännande presenter väntar på dig</div>
+            <div className="landing-sub">Fem spännande presenter väntar på dig</div>
           </div>
           <div className="gifts">
-            <GiftBox label="I" index={0} onClick={() => openGift(0)} opened={openedGifts.has(0)} />
-            <GiftBox label="II" index={1} onClick={() => openGift(1)} opened={openedGifts.has(1)} />
-            <GiftBox label="III" index={2} onClick={() => openGift(2)} opened={openedGifts.has(2)} />
-            <GiftBox label="IV" index={3} onClick={() => openGift(3)} opened={openedGifts.has(3)} />
+            <GiftBox label="I" index={0} onClick={() => openGift(0)} opened={openedGifts.has(0)} locked={isLocked(0)} />
+            <GiftBox label="II" index={1} onClick={() => openGift(1)} opened={openedGifts.has(1)} locked={isLocked(1)} />
+            <GiftBox label="III" index={2} onClick={() => openGift(2)} opened={openedGifts.has(2)} locked={isLocked(2)} />
+            <GiftBox label="IV" index={3} onClick={() => openGift(3)} opened={openedGifts.has(3)} locked={isLocked(3)} />
+            <GiftBox label="V" index={4} onClick={() => openGift(4)} opened={openedGifts.has(4)} locked={isLocked(4)} />
           </div>
         </div>
       </div>
@@ -306,7 +378,7 @@ export default function Home() {
               <div className="card-corner br">{cornerSVG}</div>
               <div className="card-content">
                 <div className="song-icon">🎵</div>
-                <div className="card-number">Present III</div>
+                <div className="card-number">Present IV</div>
                 <div className="card-divider" />
                 <div className="card-text">En låt till dig</div>
                 <div className="song-subtitle">Tryck play</div>
@@ -324,10 +396,34 @@ export default function Home() {
           <div className="cph-border" />
           <div className="cph-shimmer" />
           <div className="cph-flag">🇩🇰</div>
-          <div className="cph-label">Present IV</div>
+          <div className="cph-label">Present V</div>
           <div className="cph-divider" />
           <div className="cph-title">Vi åker till Köpenhamn</div>
           <div className="cph-subtitle">Bara du och jag</div>
+        </div>
+      </div>
+
+      {/* ═══ BRUNCH ═══ */}
+      <div className={`screen screen-brunch${screen === "brunch" ? " active" : ""}`}>
+        <button className="back-btn" onClick={() => setScreen("landing")}>&larr; Tillbaka</button>
+        <div className="cph-card">
+          <div className="cph-border" />
+          <div className="cph-shimmer" />
+          <div className="brunch-pin">
+            <svg width="36" height="46" viewBox="0 0 36 46" fill="none">
+              <path d="M18 0C8.06 0 0 8.06 0 18c0 13.5 18 28 18 28s18-14.5 18-28C36 8.06 27.94 0 18 0z" fill="rgba(200,103,122,0.85)" />
+              <circle cx="18" cy="18" r="8" fill="rgba(250,246,239,0.9)" />
+            </svg>
+          </div>
+          <div className="cph-label">Present II</div>
+          <div className="cph-divider" />
+          <div className="cph-title">Stockholm Brunch Club</div>
+          <div className="cph-subtitle">Söndagsbrunch f&ouml;r tv&aring;</div>
+          <div className="brunch-coords">
+            <span>59.3150&deg; N</span>
+            <span className="brunch-coords-sep">&middot;</span>
+            <span>18.0811&deg; E</span>
+          </div>
         </div>
       </div>
     </>
