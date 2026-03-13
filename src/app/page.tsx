@@ -380,7 +380,7 @@ export default function Home() {
                 <div className="song-icon">🎵</div>
                 <div className="card-number">Present I</div>
                 <div className="card-divider" />
-                <div className="card-text">En låt till dig — en ledtråd till nästa present</div>
+                <div className="card-text">En låt till dig<br />(och ledtråd till nästa present)</div>
                 <div className="song-subtitle">Tryck på play</div>
                 <audio ref={audioRef} className="song-player" controls src="/mia/mia v4.mp3" />
               </div>
